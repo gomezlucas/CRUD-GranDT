@@ -1,0 +1,12 @@
+{{#each equipos as |equipo|}}
+<tr>
+    <th scope="row">{{equipo.id}}</th>
+    <td>{{equipo.name}}</td>
+    <td>{{equipo.area.name}}</td>
+    <td class="d-flex justify-content-around">
+        <a href="/equipo/{{equipo.id}}">Ver</a>
+        <a href="/editar/equipo/{{equipo.id}}">Editar</a>
+        <a href="/eliminar/equipo/{{equipo.id}}">Eliminar </a>
+    </td>
+</tr>
+{{/each}}

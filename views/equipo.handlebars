@@ -1,0 +1,18 @@
+<div class="container mt-5">
+    <div class="card">
+        <h5 class="card-header">{{data.equipo.name}}</h5>
+        <div class="card-body text-center">
+            <img class="img-fluid mb-4" src="{{data.equipo.crestUrl}}" alt="img" style="
+    max-width: 25rem;">
+            <h5 class="card-title">{{data.equipo.address}}</h5>
+            <h5 class="card-title">{{data.equipo.phone}}</h5>
+            <h5 class="card-title">{{data.equipo.website}}</h5>
+            <p class="card-text">{{data.equipo.founded}}</p>
+            <div>
+                <a href="/editar/equipo/{{data.equipo.id}}" class="btn btn-primary">Editar</a>
+                <a href="/eliminar/equipo/{{data.equipo.id}}" class="btn btn-primary">Borrar</a>
+
+            </div>
+        </div>
+    </div>
+</div>

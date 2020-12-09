@@ -1,0 +1,77 @@
+<div class="container mt-5">
+    <div>
+        <h2 class="mb-3"> Información del Club</h2>
+    </div>
+    {{#if data.errores}}
+    {{#each data.errores as |error|}}
+    <div class="alert alert-danger" role="alert">
+        {{ error}}
+    </div>
+    {{/each}}
+    {{/if}}
+    <form method="POST" action="{{data.action}}" enctype="multipart/form-data">
+        <div class="row">
+            <div class="  col-3 col-md-2 col-lg-1 mb-5  ">
+                <input type="text" class="form-control" placeholder="Siglas" name="siglas" id="siglas" maxlength="3"
+                    required value="{{data.equipo.siglas}}"  >
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12 col-md-6  mb-4 mb-md-0">
+                <label for="nombre">Nombre</label>
+                <input type="text" class="form-control" placeholder="Nombre" name="nombre" id="nombre" required
+                    value="{{data.equipo.nombre}}">
+            </div>
+            <div class="col-12 col-md-6 ">
+                <label for="direccion">Dirección</label>
+                <input type="text" class="form-control" placeholder="Dirección" name="direccion" id="direccion" required
+                    value="{{data.equipo.direccion}}"> </div>
+        </div>
+        <div class="row mt-4">
+            <div class="col-12 col-md-6 mb-4 mb-md-0">
+                <label for="telefono">Teléfono</label>
+                <input type="text" class="form-control" placeholder="Teléfono" name="telefono" id="telefono" required
+                    value="{{data.equipo.telefono}}">
+            </div>
+            <div class="col-12 col-md-6 ">
+                <label for="website">Website</label>
+                <input type="text" class="form-control" placeholder="Website" name="website" id="website" required
+                    value="{{data.equipo.website}}">
+            </div>
+        </div>
+        <div class="row mt-4">
+            <div class="col-12 col-md-6 mb-4 mb-md-0">
+                <label for="fundacion">Año de fundación </label>
+                <input type="number" class="form-control" placeholder="Fecha de fundación" name="fundacion"
+                    id="fundacion" required value="{{data.equipo.fundacion}}">
+            </div>
+            <div class="col-12 col-md-6 ">
+                <label for="fundacion">País </label>
+                <input type="text" class="form-control" placeholder="País" name="pais" id="pais" required
+                    value="{{data.equipo.pais}}">
+            </div>
+        </div>
+        <div class="row mt-4">
+            <div class="col-12 col-md-6 ">
+                <label class="mb-4" for=""> </label>
+                <div class="input-group mb-3">
+                    <div class="custom-file">
+
+                        <input type="file" class="custom-file-input" id="imagenClub" name="fotoEquipo"
+                            value="{{data.equipo.image}}">
+                        <label class="custom-file-label" for="imagenClub" aria-describedby="ImagenDelClub">Elija
+                            Archivo</label>
+                    </div>
+                    <div class="input-group-append">
+                        <span class="input-group-text" id="ImagenDelClub">Cargar</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row mt-4  mb-4 ">
+            <div class="col-12 d-flex justify-content-center">
+                <button class="btn btn-primary " type="submit">Enviar</button>
+            </div>
+        </div>
+    </form>
+</div>
