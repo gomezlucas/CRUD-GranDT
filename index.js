@@ -3,13 +3,14 @@
 /**
  * Modulos Externos
  */
-const fs = require('fs');
 const express = require('express');
 const multer = require('multer');
 
 const upload = multer({ dest: './uploads/imagenes' });
 const handlebars = require('express-handlebars');
-
+const {
+  obtenerEquipo, obtenerEquiposRaw, obtenerEquipos, guardarEquipos, eliminarImagenServer,
+} = require('./src/utilities');
 /**
  * App Variables
  */
@@ -17,7 +18,7 @@ const port = process.env.PORT || '8000';
 const app = express();
 const hbs = handlebars.create();
 
-// Seteo handlebar
+// Set handlebar
 app.engine('handlebars', hbs.engine);
 app.set('view engine', 'handlebars');
 
@@ -27,7 +28,7 @@ app.use(express.static(`${__dirname}/uploads`));
 
 /* Rutas */
 app.get('/', (req, res) => {
-  const equipos = JSON.parse(fs.readFileSync('./data/equipos.json'));
+  const equipos = obtenerEquipos();
   const total = equipos.length;
   res.render('equipos', {
     layout: 'index',
@@ -40,21 +41,18 @@ app.get('/', (req, res) => {
 });
 
 app.get('/equipos', (req, res) => {
-  const equipos = fs.readFileSync('./data/equipos.json');
+  const equipos = obtenerEquiposRaw();
   res.setHeader('Content-Type', 'application/json');
   res.send(equipos);
 });
 
 app.get('/equipo/:id', (req, res) => {
   const { id } = req.params;
-  const equipo = fs.readFileSync('./data/equipos.json');
-  let equipoJson = JSON.parse(equipo);
-  [equipoJson] = equipoJson.filter((team) => team.id == id);
-
-  if (equipoJson) {
+  const equipo = obtenerEquipo(id);
+  if (equipo) {
     res.render('equipo', {
       layout: 'index',
-      data: { equipo: equipoJson },
+      data: { equipo },
     });
   } else {
     res.render('404', {
@@ -65,16 +63,14 @@ app.get('/equipo/:id', (req, res) => {
 
 app.get('/eliminar/equipo/:id', (req, res) => {
   const { id } = req.params;
-  let equipos = JSON.parse(fs.readFileSync('./data/equipos.json'));
+  let equipos = obtenerEquipos();
+  const equipo = obtenerEquipo(id);
 
   // Busca y guarda el path de la imagen, elimina si es que existe
-  const equipo = equipos.filter((eq) => eq.id == id)[0];
-  if (equipo.crestUrl && !equipo.crestUrl.includes('http')) {
-    fs.unlinkSync(`./uploads${equipo.crestUrl}`);
-  }
-  equipos = equipos.filter((eq) => eq.id != id);
+  eliminarImagenServer(equipo.crestUrl);
 
-  fs.writeFileSync('./data/equipos.json', JSON.stringify(equipos));
+  equipos = equipos.filter((eq) => eq.id != id);
+  guardarEquipos(equipos);
   res.redirect('/');
 });
 
@@ -85,7 +81,7 @@ app.get('/agregar/equipo', (req, res) => {
 });
 
 app.post('/agregar/equipo', upload.single('fotoEquipo'), (req, res) => {
-  const equipos = JSON.parse(fs.readFileSync('./data/equipos.json'));
+  const equipos = obtenerEquipos();
   const errores = [];
   const {
     siglas, nombre, direccion, telefono, website, fundacion,
@@ -127,19 +123,18 @@ app.post('/agregar/equipo', upload.single('fotoEquipo'), (req, res) => {
       founded: fundacion,
       crestUrl: req.file && imagePath + req.file.filename,
     };
-
     equipos.push(nuevoEquipo);
-    fs.writeFileSync('./data/equipos.json', JSON.stringify(equipos));
+    guardarEquipos(equipos);
     res.redirect('/');
   }
 });
 
 app.get('/editar/equipo/:id', (req, res) => {
   const { id } = req.params;
-  const equipos = JSON.parse(fs.readFileSync('./data/equipos.json'));
+
   const {
     tla, name, area, address, website, founded, phone, crestUrl,
-  } = equipos.filter((e) => e.id == id)[0];
+  } = obtenerEquipo(id);
 
   const equipo = {
     siglas: tla,
@@ -168,13 +163,14 @@ app.post('/editar/equipo/:id', upload.single('fotoEquipo'), (req, res) => {
     siglas, nombre, direccion, telefono, website, fundacion,
   } = req.body;
   const errores = [];
-  let equipos = JSON.parse(fs.readFileSync('./data/equipos.json'));
-  const equipo = equipos.filter((e) => e.id == id)[0];
+  let equipos = obtenerEquipos();
+  const equipo = obtenerEquipo(id);
 
   // Defino foto del equipo
   const imagePath = '/imagenes/';
   let image;
   if (req.file) {
+    eliminarImagenServer(equipo.crestUrl);
     image = `${imagePath}${req.file.filename}`;
   } else {
     image = equipo.crestUrl;
@@ -210,7 +206,7 @@ app.post('/editar/equipo/:id', upload.single('fotoEquipo'), (req, res) => {
       return eq;
     });
 
-    fs.writeFileSync('./data/equipos.json', JSON.stringify(equipos));
+    guardarEquipos(equipos);
     res.redirect('/');
   }
 });
