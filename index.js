@@ -45,10 +45,10 @@ app.get('/equipos', (req, res) => {
   res.send(equipos);
 });
 
-app.get('/equipo/:id', async (req, res) => {
+app.get('/equipo/:id', (req, res) => {
   const { id } = req.params;
   const equipo = fs.readFileSync('./data/equipos.json');
-  let equipoJson = await JSON.parse(equipo);
+  let equipoJson = JSON.parse(equipo);
   [equipoJson] = equipoJson.filter((team) => team.id == id);
 
   if (equipoJson) {
