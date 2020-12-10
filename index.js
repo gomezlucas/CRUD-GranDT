@@ -9,8 +9,16 @@ const multer = require('multer');
 const upload = multer({ dest: './uploads/imagenes' });
 const handlebars = require('express-handlebars');
 const {
-  obtenerEquipo, obtenerEquiposRaw, obtenerEquipos, guardarEquipos, eliminarImagenServer,
+  obtenerEquipo,
+  eliminarEquipo,
+  guardarEquipo,
+  chequearSiglasErrores,
 } = require('./src/utilities');
+
+const {
+  obtenerEquipos, obtenerEquiposRaw,
+} = require('./src/server.js');
+
 /**
  * App Variables
  */
@@ -36,7 +44,6 @@ app.get('/', (req, res) => {
       total,
       equipos,
     },
-
   });
 });
 
@@ -63,14 +70,7 @@ app.get('/equipo/:id', (req, res) => {
 
 app.get('/eliminar/equipo/:id', (req, res) => {
   const { id } = req.params;
-  let equipos = obtenerEquipos();
-  const equipo = obtenerEquipo(id);
-
-  // Busca y guarda el path de la imagen, elimina si es que existe
-  eliminarImagenServer(equipo.crestUrl);
-
-  equipos = equipos.filter((eq) => eq.id != id);
-  guardarEquipos(equipos);
+  eliminarEquipo(id);
   res.redirect('/');
 });
 
@@ -82,22 +82,13 @@ app.get('/agregar/equipo', (req, res) => {
 
 app.post('/agregar/equipo', upload.single('fotoEquipo'), (req, res) => {
   const equipos = obtenerEquipos();
-  const errores = [];
+  const imagePath = '/imagenes/';
   const {
     siglas, nombre, direccion, telefono, website, fundacion,
   } = req.body;
 
-  // Creo ID para el nuevo Equipo
-  const newID = Math.max(...equipos.map((equipo) => equipo.id)) + 1;
-
-  // Chequeo si TLA existe
-  if (equipos.filter((equipo) => equipo.tla === siglas.toUpperCase()).length > 0) {
-    errores.push('La sigla para identificar al club ya existe');
-  }
-
-  if (siglas.length < 3) {
-    errores.push('La Sigla del equipo debe tener 3 caracteres');
-  }
+  // Chequeo si TLA existe y el minimo de caracteres
+  const errores = chequearSiglasErrores(equipos, siglas);
 
   // Chequeo si hay errores
   if (errores.length > 0) {
@@ -106,14 +97,12 @@ app.post('/agregar/equipo', upload.single('fotoEquipo'), (req, res) => {
       data: {
         errores,
         equipo: req.body,
+        image: req.file && imagePath + req.file.filename,
         action: '/agregar/equipo',
       },
     });
   } else {
-    const imagePath = '/imagenes/';
-
     const nuevoEquipo = {
-      id: newID,
       tla: siglas.toUpperCase(),
       name: nombre,
       address: direccion,
@@ -123,8 +112,7 @@ app.post('/agregar/equipo', upload.single('fotoEquipo'), (req, res) => {
       founded: fundacion,
       crestUrl: req.file && imagePath + req.file.filename,
     };
-    equipos.push(nuevoEquipo);
-    guardarEquipos(equipos);
+    guardarEquipo(nuevoEquipo);
     res.redirect('/');
   }
 });
@@ -162,19 +150,11 @@ app.post('/editar/equipo/:id', upload.single('fotoEquipo'), (req, res) => {
   const {
     siglas, nombre, direccion, telefono, website, fundacion,
   } = req.body;
-  const errores = [];
-  let equipos = obtenerEquipos();
-  const equipo = obtenerEquipo(id);
-
-  // Defino foto del equipo
+  const equipos = obtenerEquipos();
   const imagePath = '/imagenes/';
-  let image;
-  if (req.file) {
-    eliminarImagenServer(equipo.crestUrl);
-    image = `${imagePath}${req.file.filename}`;
-  } else {
-    image = equipo.crestUrl;
-  }
+
+  // Chequeo si TLA existe y el minimo de caracteres
+  const errores = chequearSiglasErrores(equipos, siglas, 'edit');
 
   // Chequeo si hay errores
   if (errores.length > 0) {
@@ -183,12 +163,13 @@ app.post('/editar/equipo/:id', upload.single('fotoEquipo'), (req, res) => {
       data: {
         errores,
         equipo: req.body,
+        image: req.file,
         action: `/editar/equipo/${id}`,
       },
     });
   } else {
-    const nuevoEquipo = {
-      ...equipo,
+    const equipoEditado = {
+      id,
       tla: siglas,
       name: nombre,
       address: direccion,
@@ -196,17 +177,10 @@ app.post('/editar/equipo/:id', upload.single('fotoEquipo'), (req, res) => {
       website,
       area: { name: req.body.pais },
       founded: fundacion,
-      crestUrl: image,
+      crestUrl: req.file && `${imagePath}${req.file.filename}`,
     };
 
-    equipos = equipos.map((eq) => {
-      if (eq.id == id) {
-        return nuevoEquipo;
-      }
-      return eq;
-    });
-
-    guardarEquipos(equipos);
+    guardarEquipo(equipoEditado);
     res.redirect('/');
   }
 });
