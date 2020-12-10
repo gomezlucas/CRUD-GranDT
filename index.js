@@ -112,7 +112,7 @@ app.post('/agregar/equipo', upload.single('fotoEquipo'), (req, res) => {
       founded: fundacion,
       crestUrl: req.file && imagePath + req.file.filename,
     };
-    guardarEquipo(nuevoEquipo);
+    guardarEquipo(nuevoEquipo, equipos);
     res.redirect('/');
   }
 });
@@ -180,7 +180,7 @@ app.post('/editar/equipo/:id', upload.single('fotoEquipo'), (req, res) => {
       crestUrl: req.file && `${imagePath}${req.file.filename}`,
     };
 
-    guardarEquipo(equipoEditado);
+    guardarEquipo(equipoEditado, equipos);
     res.redirect('/');
   }
 });

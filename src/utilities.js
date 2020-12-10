@@ -32,8 +32,9 @@ exports.eliminarEquipo = (id) => {
   guardarEquipos(equipos);
 };
 
-exports.guardarEquipo = (equipo) => {
-  let equipos = obtenerEquipos();
+exports.guardarEquipo = (equipo, arrayEquipos) => {
+  let equipos = arrayEquipos;
+
   const equipoEditado = equipo;
   if (equipoEditado.hasOwnProperty('id')) {
     equipos = equipos.map((eq) => {
@@ -58,11 +59,8 @@ exports.guardarEquipo = (equipo) => {
 
 exports.chequearSiglasErrores = (equipos, siglas, edit) => {
   const errores = [];
-  console.log(edit, Boolean(edit));
-  const max = edit ? 1 : 0;
-  console.log(max, 'maxxxx');
-  console.log(equipos.filter((equipo) => equipo.tla === siglas.toUpperCase()).length, 'lengthhh');
-  if (equipos.filter((equipo) => equipo.tla === siglas.toUpperCase()).length > max) {
+   const max = edit ? 1 : 0;
+   if (equipos.filter((equipo) => equipo.tla === siglas.toUpperCase()).length > max) {
     errores.push('La sigla para identificar al club ya existe');
   }
 
